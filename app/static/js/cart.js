@@ -222,7 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  checkoutBtn.addEventListener('click', () => {
+  checkoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     const isAuthenticated = checkoutBtn.dataset.isAuthenticated === 'true';
     if (isAuthenticated) {
       window.location.href = '/checkout/shipping-address';

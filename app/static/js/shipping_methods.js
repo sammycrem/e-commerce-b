@@ -2,9 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
     const subtotalEl = document.getElementById('subtotal');
     const shippingEl = document.getElementById('shipping');
+    const vatEl = document.getElementById('vat');
     const totalEl = document.getElementById('total');
     const originalShippingCost = parseFloat(shippingEl.textContent.replace('€', ''));
     const subtotal = parseFloat(subtotalEl.textContent.replace('€', ''));
+    const vat = parseFloat(vatEl.textContent.replace('€', ''));
 
     shippingMethods.forEach(method => {
         method.addEventListener('change', () => {
@@ -15,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 newShippingCost *= 0.9;
             }
 
-            const newTotal = subtotal + newShippingCost;
+            const newTotal = subtotal + newShippingCost + vat;
 
             shippingEl.textContent = `€${newShippingCost.toFixed(2)}`;
             totalEl.textContent = `€${newTotal.toFixed(2)}`;
@@ -26,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('proceed-to-checkout').addEventListener('click', () => {
+    document.getElementById('proceed-to-checkout').addEventListener('click', (e) => {
+        e.preventDefault();
         const shippingMethod = sessionStorage.getItem('shipping_method');
         const shippingCost = sessionStorage.getItem('shipping_cost');
         const total = sessionStorage.getItem('total');

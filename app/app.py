@@ -201,10 +201,11 @@ def setup_database(app):
         # --- Seeding Logic ---
         # Create default user if it doesn't exist
         if not User.query.filter_by(username=ADMIN_USER).first():
-            create_user(ADMIN_USER, generate_id(3) + '_1', ADMIN_EMAIL, ADMIN_PASSWORD)
+            create_user(ADMIN_USER, generate_id(6) + '_1', ADMIN_EMAIL, ADMIN_PASSWORD)
             users = ["jimmy", "rami", "christophe","olivier","majed","clara","aline","oscar","jean"]
             for xuser_name in users:
-                create_user(xuser_name, generate_id(3) + '_1', xuser_name+"@nomail.local", '123')
+                if not User.query.filter_by(username=xuser_name).first():
+                    create_user(xuser_name, generate_id(6) + '_1', xuser_name+"@nomail.local", '123')
 
         if not Promotion.query.first():
             promo = Promotion(
@@ -263,10 +264,12 @@ def setup_database(app):
 
 @app.route('/')
 def home():
-    if current_user.is_authenticated:
-        return  render_template ('home.html')
-    else:
-        return redirect(url_for('login'))
+    return render_template('index.html')
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('home.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

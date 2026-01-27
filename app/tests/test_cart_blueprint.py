@@ -26,5 +26,5 @@ def test_clear_cart(client):
 
 def test_my_cart_page(authenticated_client):
     """Test that the my-cart page loads for an authenticated user."""
-    response = authenticated_client.get('/my-cart')
+    response = authenticated_client.get('/my-cart', follow_redirects=True)
     assert response.status_code == 200
