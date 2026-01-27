@@ -1,0 +1,41 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
+    const subtotalEl = document.getElementById('subtotal');
+    const shippingEl = document.getElementById('shipping');
+    const totalEl = document.getElementById('total');
+    const originalShippingCost = parseFloat(shippingEl.textContent.replace('€', ''));
+    const subtotal = parseFloat(subtotalEl.textContent.replace('€', ''));
+
+    shippingMethods.forEach(method => {
+        method.addEventListener('change', () => {
+            let newShippingCost = originalShippingCost;
+            if (method.value === 'express') {
+                newShippingCost *= 1.25;
+            } else if (method.value === 'economic') {
+                newShippingCost *= 0.9;
+            }
+
+            const newTotal = subtotal + newShippingCost;
+
+            shippingEl.textContent = `€${newShippingCost.toFixed(2)}`;
+            totalEl.textContent = `€${newTotal.toFixed(2)}`;
+
+            sessionStorage.setItem('shipping_method', method.value);
+            sessionStorage.setItem('shipping_cost', newShippingCost.toFixed(2));
+            sessionStorage.setItem('total', newTotal.toFixed(2));
+        });
+    });
+
+    document.getElementById('proceed-to-checkout').addEventListener('click', () => {
+        const shippingMethod = sessionStorage.getItem('shipping_method');
+        const shippingCost = sessionStorage.getItem('shipping_cost');
+        const total = sessionStorage.getItem('total');
+
+        console.log('Shipping Method:', shippingMethod);
+        console.log('Shipping Cost:', shippingCost);
+        console.log('Total:', total);
+
+        // For now, just log the values. In the future, this would navigate to the payment page.
+        alert(`Shipping Method: ${shippingMethod}\nShipping Cost: €${shippingCost}\nTotal: €${total}`);
+    });
+});

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+    <title>Home</title>
+    <link href="/static/assets/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&amp;family=Nunito:wght@600;700;800&amp;family=Pacifico&amp;display=swap;"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cookie&display=swap" rel="stylesheet">
+    <link href="/static/assets/css/product.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>User List</h1>
+
+    <div class="align-items-center" id="updateDiv"
+        style="overflow-y: scroll; overflow-x: hidden; display: block;position: relative;z-index: 10000000;top: 25%;width: 94%;left: 3%;background: black;height: auto; border: solid #FEA116;">
+        <div class=" fadeInUp" style="width: 100%;padding: 2%;margin: auto;">
+            <br>
+            <h4 class="section-title ff-secondary  text-secondary" id="h4_1_form" style="margin-left: 2%;"><i
+                    class="fa-solid fa-right-to-bracket"></i></h4>
+            <h4 id="h4_2_form" class="section-title ff-secondary  text-secondary"> Inscription Gratuite</h4>
+            <h4 class="text-white mb-4" id="h2_1_form" style="margin-left: 2%;">{{ message_text }}</h4>
+            <form method="POST" action="/user_update">
+                <div id="user_list">
+                {% for user in users %}
+                <div class="" style="display: inline-flex;">
+
+                   <input class="form-control" type="text" name="id" value="{{ user.id }} " required readonly style="margin: 1%;border-radius: 0px;max-width: 4%;">
+                   <input class="form-control" type="text" name="user_id" value="{{ user.user_id }}" required readonly style="margin: 1%;border-radius: 0px;max-width: 6%;">
+                    
+                    
+                    <input class="form-control" type="text" name="name" value="{{ user.username }}" required style="margin: 1%;border-radius: 0px;max-width: 15%;">
+                    <input class="form-control" type="email" name="email" value="{{ user.email }}" required style="margin: 1%;border-radius: 0px;max-width: 25%;">
+                    <input class="form-control" type="text" name="validation" value="{{ user.validation }}" required style="margin: 1%;border-radius: 0px;max-width: 3%;">
+                    <input class="form-control" type="text" name="created_at" value="{{ user.created_at }}" required readonly style="margin: 1%;border-radius: 0px;">
+                    <div class="col-button" style="display: contents; margin: auto;">
+                        <a href="{{ url_for('user_detail', id=user.id) }}">
+                            <div class="btn btn-primary w-25 py-3 form-control-btn" style="padding: 1.5rem !important; background: none; border: none;">
+                                <i class="fa-regular fa-pen-to-square" style="margin-left: -7px;"></i>
+                            </div>
+                            </a>
+                    </div>
+                    <div class="col-button" style="display: contents; margin: auto;">
+                        <a href="{{ url_for('user_delete', id=user.id) }}">
+                            <div class="btn btn-primary w-25 py-3 form-control-btn" style="padding: 1.5rem !important; background: none; border: none;">
+                                <i class="fa-solid fa-trash" style="margin-left: -7px;"></i>
+                            </div>
+                            </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+                <div style="width: 90%; margin-left: 10%;">
+                    <div class="col-button" style="display: contents; margin: auto;">
+                        <a href="{{ url_for('user_list') }}">
+                            <div class="btn btn-primary w-25 py-3 form-control-btn"><i class="fa-solid fa-list"></i>
+                                User List</div>
+                        </a>
+                    </div>
+
+
+                    <div class="col-button" style="display: contents; margin: auto;">
+                        <a href="{{ url_for('signup') }}">
+                            <div class="btn btn-primary w-25 py-3 form-control-btn"><i
+                                    class="fa-solid fa-user-plus"></i>
+                                Signup</div>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const divElement = document.getElementById('user_list');
+        const newElement = document.createElement('div');
+        newElement.style="display: inline-flex;"
+        newElement.innerHTML = '<input class="form-control" type="text" name="id" value="Id" required readonly style="margin: 1%;border-radius: 0px;max-width: 4%;background: khaki"><input class="form-control" type="text" name="user_id" value="User_Id" required readonly style="margin: 1%;border-radius: 0px;max-width: 6%;background: khaki"><input class="form-control" type="text" name="name" value="Name" readonly style="margin: 1%;border-radius: 0px; background: khaki;max-width: 15%;"><input class="form-control" type="email" name="email" value="Email" readonly style="margin: 1%;border-radius: 0px; background: khaki;max-width: 25%;"><input class="form-control" type="text" name="validation" value="Validation" readonly style="margin: 1%;border-radius: 0px; background: khaki;max-width: 3%;"><input class="form-control" type="text" name="created_at" value="Created_at" readonly style="margin: 1%;border-radius: 0px; background: khaki;"><div class="col-button" style="display: contents; margin: auto;"><a href="/user/1"><div class="btn btn-primary w-25 py-3 form-control-btn" style="padding: 1.5rem !important; background: none; border: none;"><i class="fa-regular fa-pen-to-square" style="margin-left: -7px;"></i></div></a></div><div class="col-button" style="display: contents; margin: auto;"><a href="/user/1"><div class="btn btn-primary w-25 py-3 form-control-btn" style="padding: 1.5rem !important; background: none; border: none;"><i class="fa-regular fa-pen-to-square" style="margin-left: -7px;"></i></div></a></div>';
+        divElement.prepend(newElement);
+    </script>
+</body>
+
+</html>

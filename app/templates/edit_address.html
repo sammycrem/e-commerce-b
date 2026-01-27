@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Address{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Edit Address</h2>
+    <form method="POST" action="{{ url_for('checkout_bp.edit_address', address_id=address.id) }}">
+        <div class="mb-3">
+            <label for="address_type" class="form-label">Address Type</label>
+            <select class="form-select" id="address_type" name="address_type" required>
+                <option value="shipping" {% if address.address_type == 'shipping' %}selected{% endif %}>Shipping</option>
+                <option value="billing" {% if address.address_type == 'billing' %}selected{% endif %}>Billing</option>
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ address.first_name }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ address.last_name }}" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="address_line_1" class="form-label">Address Line 1</label>
+            <input type="text" class="form-control" id="address_line_1" name="address_line_1" value="{{ address.address_line_1 }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="address_line_2" class="form-label">Address Line 2 (Optional)</label>
+            <input type="text" class="form-control" id="address_line_2" name="address_line_2" value="{{ address.address_line_2 }}">
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" value="{{ address.city }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="state" class="form-label">State/Province</label>
+                <input type="text" class="form-control" id="state" name="state" value="{{ address.state }}">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="postal_code" class="form-label">Postal Code</label>
+                <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ address.postal_code }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="country" class="form-label">Country</label>
+                <select class="form-select" id="country" name="country" required>
+                    {% for country in countries %}
+                        <option value="{{ country.iso_code }}" {% if country.iso_code == address.country_iso_code %}selected{% endif %}>{{ country.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="phone_number" class="form-label">Phone Number (Optional)</label>
+            <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ address.phone_number }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{{ url_for('checkout_bp.shipping_address') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}Shop{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Shop</h2>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ url_for('product_page', sku=product.product_sku) }}">{{ product.name }}</a></h5>
+                    <p class="card-text">{{ product.description }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

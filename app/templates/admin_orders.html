@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Admin Orders{% endblock %}
+{% block content %}
+
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-4">Admin — Orders</h1>
+
+  <!-- Filter/search controls -->
+  <div class="flex flex-wrap gap-3 mb-4 items-center">
+    <label for="filter-status" class="font-medium">Status:</label>
+    <select id="filter-status" class="border border-gray-300 rounded px-2 py-1">
+      <option value="">All</option>
+      <option value="PENDING">PENDING</option>
+      <option value="PAID">PAID</option>
+      <option value="READY_FOR_SHIPPING">READY_FOR_SHIPPING</option>
+      <option value="SHIPPED">SHIPPED</option>
+      <option value="DELIVERED">DELIVERED</option>
+      <option value="CANCELLED">CANCELLED</option>
+      <option value="RETURNED">RETURNED</option>
+    </select>
+
+    <input id="search-order" type="text" placeholder="Search by Order ID..." class="border border-gray-300 rounded px-3 py-1 flex-grow sm:flex-none" style="min-width:200px;"/>
+
+    <button id="reload-orders" class="btn btn-secondary px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 border border-gray-300">Reload</button>
+  </div>
+
+  <!-- Orders list rendered by JS -->
+  <div id="orders-list" class="bg-white border border-gray-200 rounded shadow-sm p-3">
+    <p>Loading orders…</p>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_orders.js') }}" defer></script>
+{% endblock %}

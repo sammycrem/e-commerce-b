@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}Order {{ public_order_id }}{% endblock %}
+{% block content %}
+
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-4">Order Detail</h1>
+
+  <!-- Order detail is populated dynamically -->
+  <div id="order-detail" data-public-order-id="{{ public_order_id }}">
+    <p>Loading order details…</p>
+  </div>
+
+  <div class="mt-6">
+    <a href="{{ url_for('admin_orders') }}" class="text-blue-600 hover:underline">&larr; Back to orders</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_orders.js') }}" defer></script>
+{% endblock %}

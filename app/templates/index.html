@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}All Products{% endblock %}
+
+{% block content %}
+    <h1>Our Products</h1>
+    <div id="product-grid" class="product-grid">
+        <p>Loading products...</p>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/index.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+
+{% block title %}My Cart{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="cart-header">
+        <div class="progress-bar">
+            <div class="step active">
+                <span>1</span>
+                <p>My Cart</p>
+            </div>
+            <div class="step">
+                <span>2</span>
+                <p>Shipping Address</p>
+            </div>
+            <div class="step">
+                <span>3</span>
+                <p>Shipping Methods</p>
+            </div>
+            <div class="step">
+                <span>4</span>
+                <p>Payment Methods</p>
+            </div>
+            <div class="step">
+                <span>5</span>
+                <p>Summary</p>
+            </div>
+        </div>
+        <h1>My Cart</h1>
+    </div>
+    <div class="cart-body">
+        <div class="cart-items">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Price/Unit</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="cart-container">
+                    <!-- Cart items will be injected here by cart.js -->
+                </tbody>
+            </table>
+            <div class="cart-actions">
+                <button class="continue-shopping">Continue Shopping</button>
+                <button class="clear-cart">Clear Shopping Cart</button>
+            </div>
+        </div>
+        <div class="cart-summary" id="cart-summary" style="display: none;">
+            <h2>Summary</h2>
+            <div class="summary-item">
+                <span>Subtotal</span>
+                <span id="subtotal"></span>
+            </div>
+
+            <div class="summary-item" style="padding: 10px 0;">
+                <label for="country-select" style="display: block; margin-bottom: 5px; font-weight: bold;">Shipping Country:</label>
+                <select id="country-select" class="form-input" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"><option value="">Select country</option></select>
+            </div>
+
+            <div class="promo-section" style="padding: 10px 0;">
+                <input type="text" id="promo-code" placeholder="Promo Code" class="form-input" style="width: 100%; margin-bottom: 5px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <button id="apply-promo-btn" class="btn" style="width: 100%; padding: 10px; background-color: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+                <p id="promo-feedback" class="feedback" style="margin-top: 5px; font-size: 0.9em;"></p>
+            </div>
+
+            <div class="summary-item">
+                <span>Discount</span>
+                <span id="discount-amount">$0.00</span>
+            </div>
+            <div class="summary-item">
+                <span>Shipping</span>
+                <span id="shipping-amount">$0.00</span>
+            </div>
+            <div class="summary-item">
+                <span>VAT</span>
+                <span id="vat-amount">$0.00</span>
+            </div>
+
+            <div class="summary-item total">
+                <span>Total Due</span>
+                <span id="total-price"></span>
+            </div>
+            <button id="checkout-btn" class="checkout-btn" data-is-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}">PROCEED TO CHECKOUT</button>
+            <p id="checkout-feedback" class="feedback"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cart.js') }}" defer></script>
+{% endblock %}

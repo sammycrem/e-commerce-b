@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}Product - {{ sku }}{% endblock %}
+
+{% block content %}
+<div class="product-page">
+  <div class="gallery-column">
+    <div id="thumb-rail" class="thumb-rail" aria-hidden="false"></div>
+    <div class="main-image-wrap">
+      <img id="main-image" src="https://via.placeholder.com/800" alt="Product image" />
+      <button id="zoom-btn" class="btn" aria-label="Zoom image" title="Zoom"></button>
+    </div>
+  </div>
+
+  <div class="info-column">
+    <h1 id="product-name">Loading...</h1>
+    <p id="product-price" class="price">$0.00</p>
+    <p id="product-description" class="muted"></p>
+
+    <div class="selectors">
+      <div class="swatches-panel">
+        <h4>Color</h4>
+        <div id="swatch-grid" class="swatch-grid" role="list"></div>
+      </div>
+
+      <div class="sizes-panel">
+        <h4>Size</h4>
+        <div id="size-buttons" class="size-buttons" role="radiogroup"></div>
+      </div>
+
+      <div class="quantity-panel" style="margin-top:12px;">
+        <label for="qty-input">Quantity</label>
+        <input id="qty-input" type="number" min="1" value="1" class="form-input" style="width:100px; display:inline-block;">
+      </div>
+
+      <div style="margin-top:16px;">
+        <button id="add-to-cart" class="btn btn-primary btn-lg">Add to cart</button>
+      </div>
+    </div>
+
+    <div id="variant-message" class="muted" style="margin-top:12px;"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>window.PRODUCT_SKU = "{{ sku }}";</script>
+<script src="{{ url_for('static', filename='js/product.js') }}" defer></script>
+{% endblock %}

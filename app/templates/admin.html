@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-container" style="display:flex; flex-direction:column; gap:2rem;">
+
+  <h1 class="text-2xl font-bold mb-4">Admin Dashboard</h1>
+
+  <div class="tabs" style="display:flex; gap:1rem;">
+    <button class="tab-button btn btn-primary" data-tab="products">Products</button>
+    <button class="tab-button btn btn-secondary" data-tab="orders">Orders</button>
+  </div>
+
+  <!-- PRODUCTS TAB -->
+  <div id="tab-products" class="tab-content">
+    <div class="admin-grid" style="display:grid; grid-template-columns: 350px 1fr; gap:1.5rem;">
+      <div class="admin-list panel" style="background:#fff; padding:1rem; border-radius:8px;">
+        <h2>Products</h2>
+        <button id="btn-new-product" class="btn btn-primary" style="width:100%; margin-bottom:12px;">Create New Product</button>
+        <div id="product-list" style="max-height:70vh; overflow:auto;"></div>
+      </div>
+
+      <div class="admin-editor panel" style="background:#fff; padding:1rem; border-radius:8px;">
+        <h2 id="editor-title">Create / Edit Product</h2>
+        <div id="admin-feedback" class="feedback" style="display:none;"></div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <input id="product_sku" type="text" placeholder="Product SKU (e.g., TSHIRT-001)" class="form-input">
+          <input id="name" type="text" placeholder="Product Name" class="form-input">
+          <input id="category" type="text" placeholder="Category" class="form-input">
+          <input id="base_price" type="text" placeholder="Base price (e.g. 24.99)" class="form-input">
+        </div>
+        <textarea id="description" class="form-input" rows="3" placeholder="Description"></textarea>
+
+        <h3>Product Images</h3>
+        <div id="product-images"></div>
+        <button id="add-product-image" class="btn">Add product image</button>
+
+        <h3>Variants</h3>
+        <div id="variants"></div>
+        <button id="add-variant" class="btn">Add Variant</button>
+
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button id="save-product" class="btn btn-primary">Save Product</button>
+          <button id="delete-product" class="btn btn-danger" style="margin-left:auto;">Delete Product</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div id="tab-orders" class="tab-content" style="display:none;">
+    <h2>Orders</h2>
+    <div id="orders-list"></div>
+    <div id="order-detail" style="margin-top:1rem;"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('btn-primary'));
+      btn.classList.add('btn-primary');
+      const target = document.getElementById('tab-' + btn.dataset.tab);
+      if (target) target.style.display = 'block';
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_crud.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/admin_orders.js') }}" defer></script>
+{% endblock %}

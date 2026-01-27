@@ -1,0 +1,172 @@
+{% extends "layout.html" %}
+
+{% block title %}Checkout - Shipping Address{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="progress-bar-container mb-5">
+        <div class="progress-step">
+            <div class="progress-step-number">1</div>
+            <div class="progress-step-label">My Cart</div>
+        </div>
+        <div class="progress-step active">
+            <div class="progress-step-number">2</div>
+            <div class="progress-step-label">Shipping Address</div>
+        </div>
+        <div class="progress-step">
+            <div class="progress-step-number">3</div>
+            <div class="progress-step-label">Shipping Methods</div>
+        </div>
+        <div class="progress-step">
+            <div class="progress-step-number">4</div>
+            <div class="progress-step-label">Payment Methods</div>
+        </div>
+        <div class="progress-step">
+            <div class="progress-step-number">5</div>
+            <div class="progress-step-label">Summary</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Shipping Address</h2>
+            {% for address in addresses if address.address_type == 'shipping' %}
+            <div class="card address-card">
+                <div class="card-body">
+                    <p><strong>{{ address.first_name }} {{ address.last_name }}</strong></p>
+                    <p>{{ address.address_line_1 }}</p>
+                    {% if address.address_line_2 %}<p>{{ address.address_line_2 }}</p>{% endif %}
+                    <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                    <p>{{ address.country_iso_code }}</p>
+                    <p>{{ address.phone_number }}</p>
+                    <a href="{{ url_for('checkout_bp.edit_address', address_id=address.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form method="POST" action="{{ url_for('checkout_bp.shipping_address') }}" style="display:inline;">
+                        <input type="hidden" name="address_id" value="{{ address.id }}">
+                        <button type="submit" name="delete_address" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            <button class="btn btn-secondary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#addAddressModal">New Address</button>
+
+            <h2 class="mt-5">Billing Address</h2>
+            {% for address in addresses if address.address_type == 'billing' %}
+            <div class="card address-card">
+                <div class="card-body">
+                    <p><strong>{{ address.first_name }} {{ address.last_name }}</strong></p>
+                    <p>{{ address.address_line_1 }}</p>
+                    {% if address.address_line_2 %}<p>{{ address.address_line_2 }}</p>{% endif %}
+                    <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                    <p>{{ address.country }}</p>
+                    <p>{{ address.phone_number }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card">
+                <div class="card-body">
+                    <h4 class="card-title">Summary</h4>
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal</span>
+                        <span>€{{ "%.2f"|format(cart_summary.subtotal_cents / 100) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Shipping</span>
+                        <span>€{{ "%.2f"|format(cart_summary.shipping_cost_cents / 100) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>VAT</span>
+                        <span>€{{ "%.2f"|format(cart_summary.vat_cents / 100) }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total Due</span>
+                        <span>€{{ "%.2f"|format(cart_summary.total_cents / 100) }}</span>
+                    </div>
+                    <a href="{{ url_for('checkout_bp.shipping_methods') }}" class="btn btn-primary w-100 mt-4">PROCEED TO CHECKOUT</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('checkout_bp.shipping_address') }}">
+                    <div class="mb-3">
+                        <label for="address_type" class="form-label">Address Type</label>
+                        <select class="form-select" id="address_type" name="address_type" required>
+                            <option value="shipping">Shipping</option>
+                            <option value="billing">Billing</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address_line_1" class="form-label">Address Line 1</label>
+                        <input type="text" class="form-control" id="address_line_1" name="address_line_1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address_line_2" class="form-label">Address Line 2 (Optional)</label>
+                        <input type="text" class="form-control" id="address_line_2" name="address_line_2">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" name="city" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="state" class="form-label">State/Province</label>
+                            <input type="text" class="form-control" id="state" name="state">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="postal_code" class="form-label">Postal Code</label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="country" class="form-label">Country</label>
+                            <select class="form-select" id="country" name="country" required>
+                                {% for country in countries %}
+                                    <option value="{{ country.iso_code }}">{{ country.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number (Optional)</label>
+                        <input type="text" class="form-control" id="phone_number" name="phone_number">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Address</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

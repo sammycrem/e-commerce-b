@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}My Shop{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/my_cart.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body style="font-family:sans-serif; background:#f9fafb; margin:0;">
+
+  <header style="background:#111827; color:white; padding:1rem;">
+    <nav style="display:flex; align-items:center; gap:1rem; background: brown;">
+      <a href="/" style="color:white; text-decoration:none; font-weight:bold;">Home</a>
+      <a href="/index" style="color:white;">Shop</a>
+      <a href="/cart" style="color:white;">Cart</a>
+      <a href="/admin" style="color:white;">Admin</a>
+      <a href="/admin/accounting" style="color:white;">Accounting</a>
+    </nav>
+  </header>
+
+  <main style="padding:2rem;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer style="background:#f3f4f6; color:#4b5563; text-align:center; padding:1rem;">
+    <p>&copy; {{ now.year }} My Shop. All rights reserved.</p>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
