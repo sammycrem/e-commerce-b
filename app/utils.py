@@ -842,14 +842,17 @@ def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None,
                         new_unit_price = cents_to_decimal(item['unit_price_cents']) - unit_discount
                         item['unit_price_cents'] = decimal_to_cents(new_unit_price)
 
-    _, vat_total = compute_vat_for_cart(vat_calc_items, shipping_country_iso)
+    _, item_vat_total_cents = compute_vat_for_cart(vat_calc_items, shipping_country_iso)
+    vat_total = item_vat_total_cents
 
 
     # Shipping calculation
     zone = find_shipping_zone_for_country(shipping_country_iso)
     shipping_cost_cents = 0
+    base_shipping_cost_cents = 0
     if zone:
-        shipping_cost_cents = compute_shipping_cost_for_cart(cart_items, zone)
+        base_shipping_cost_cents = compute_shipping_cost_for_cart(cart_items, zone)
+        shipping_cost_cents = base_shipping_cost_cents
 
         # Apply shipping method modifiers
         if shipping_method == 'express':
@@ -865,6 +868,11 @@ def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None,
         except Exception:
             pass
 
+    # Add VAT on shipping
+    shipping_vat_rate = get_vat_rate_for_product(shipping_country_iso, None)
+    shipping_vat_cents = decimal_to_cents(cents_to_decimal(shipping_cost_cents) * shipping_vat_rate)
+    vat_total += shipping_vat_cents
+
     total = subtotal_after_discount + vat_total + shipping_cost_cents
 
     return {
@@ -872,9 +880,12 @@ def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None,
         "discount_cents": int(discount_cents),
         "subtotal_after_discount_cents": int(subtotal_after_discount),
         "vat_cents": int(vat_total),
+        "item_vat_cents": int(item_vat_total_cents),
         "shipping_cost_cents": int(shipping_cost_cents),
+        "base_shipping_cost_cents": int(base_shipping_cost_cents),
         "total_cents": int(total),
-        "shipping_zone": (zone.name if zone else None)
+        "shipping_zone": (zone.name if zone else None),
+        "vat_rate": float(shipping_vat_rate)
     }
 
 

@@ -6,17 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Elements from the new cart.html structure
   const cartContainer = document.getElementById('cart-container');
   const cartSummary = document.getElementById('cart-summary');
-  const subtotalEl = document.getElementById('subtotal');
-  const discountEl = document.getElementById('discount-amount');
-  const totalEl = document.getElementById('total-price');
+  const subtotalEl = document.getElementById('summary-subtotal');
+  const discountEl = document.getElementById('summary-discount');
+  const totalEl = document.getElementById('summary-total');
   const applyPromoBtn = document.getElementById('apply-promo-btn');
   const promoInput = document.getElementById('promo-code');
   const promoFeedback = document.getElementById('promo-feedback');
   const checkoutBtn = document.getElementById('checkout-btn');
   const checkoutFeedback = document.getElementById('checkout-feedback');
   const countrySelect = document.getElementById('country-select');
-  const vatEl = document.getElementById('vat-amount');
-  const shippingEl = document.getElementById('shipping-amount');
+  const vatEl = document.getElementById('summary-vat');
+  const shippingEl = document.getElementById('summary-shipping');
+  const grandTotalExclTaxEl = document.getElementById('summary-grand-total-excl-tax');
   const continueShoppingBtn = document.querySelector('.continue-shopping');
   const clearCartBtn = document.querySelector('.clear-cart');
 
@@ -201,6 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
       discountEl.textContent = formatPrice(data.discount_cents || 0);
       vatEl.textContent = formatPrice(data.vat_cents || 0);
       shippingEl.textContent = `${formatPrice(data.shipping_cost_cents || 0)} ${data.shipping_zone ? '(' + data.shipping_zone + ')' : ''}`;
+
+      if (grandTotalExclTaxEl) {
+        const grandExcl = (data.subtotal_cents || 0) - (data.discount_cents || 0) + (data.shipping_cost_cents || 0);
+        grandTotalExclTaxEl.textContent = formatPrice(grandExcl);
+      }
+
       totalEl.textContent = formatPrice(data.total_cents || 0);
     } catch (err) {
       console.error('recalcTotals error:', err);

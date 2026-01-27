@@ -1,28 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
     const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
-    const subtotalEl = document.getElementById('subtotal');
-    const discountEl = document.getElementById('discount');
-    const shippingEl = document.getElementById('shipping');
-    const vatEl = document.getElementById('vat-amount');
-    const totalEl = document.getElementById('total-due');
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const discountEl = document.getElementById('summary-discount');
+    const shippingEl = document.getElementById('summary-shipping');
+    const vatEl = document.getElementById('summary-vat');
+    const totalEl = document.getElementById('summary-total');
 
-    const originalShippingCost = parseFloat(shippingEl.textContent.replace('€', ''));
+    const summaryCard = document.querySelector('.summary-card');
+    const baseShipping = parseFloat(summaryCard.dataset.baseShipping);
+    const vatRate = parseFloat(summaryCard.dataset.vatRate);
+    const itemVat = parseFloat(summaryCard.dataset.itemVat);
+
     const subtotal = parseFloat(subtotalEl.textContent.replace('€', ''));
     const discount = discountEl ? parseFloat(discountEl.textContent.replace('-€', '').replace('€', '')) : 0;
-    const vat = parseFloat(vatEl.textContent.replace('€', ''));
 
     shippingMethods.forEach(method => {
         method.addEventListener('change', () => {
-            let newShippingCost = originalShippingCost;
+            let newShippingCost = baseShipping;
             if (method.value === 'express') {
-                newShippingCost *= 1.25;
+                newShippingCost = baseShipping * 1.25;
             } else if (method.value === 'economic') {
-                newShippingCost *= 0.9;
+                newShippingCost = baseShipping * 0.9;
             }
 
-            const newTotal = subtotal - discount + newShippingCost + vat;
+            // Round shipping cost to 2 decimals like in backend
+            newShippingCost = Math.round(newShippingCost * 100) / 100;
+
+            const shippingVat = Math.round(newShippingCost * vatRate * 100) / 100;
+            const totalVat = itemVat + shippingVat;
+            const subtotalAfterDiscount = subtotal - discount;
+            const newGrandTotalExclTax = subtotalAfterDiscount + newShippingCost;
+            const newTotal = newGrandTotalExclTax + totalVat;
 
             shippingEl.textContent = `€${newShippingCost.toFixed(2)}`;
+            const grandTotalExclTaxEl = document.getElementById('summary-grand-total-excl-tax');
+            if (grandTotalExclTaxEl) {
+                grandTotalExclTaxEl.textContent = `€${newGrandTotalExclTax.toFixed(2)}`;
+            }
+            vatEl.textContent = `€${totalVat.toFixed(2)}`;
             totalEl.textContent = `€${newTotal.toFixed(2)}`;
 
             // Update UI feedback for selected card

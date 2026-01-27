@@ -144,30 +144,30 @@
                     <h4 class="card-title mb-4 fw-bold">Summary</h4>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Subtotal</span>
-                        <span class="fw-bold">€{{ "%.2f"|format(cart_summary.subtotal_cents / 100) }}</span>
+                        <span id="summary-subtotal" class="fw-bold">€{{ "%.2f"|format(cart_summary.subtotal_cents / 100) }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Shipping</span>
-                        <span class="fw-bold">€{{ "%.2f"|format(cart_summary.shipping_cost_cents / 100) }}</span>
+                        <span id="summary-shipping" class="fw-bold">€{{ "%.2f"|format(cart_summary.shipping_cost_cents / 100) }}</span>
                     </div>
                     {% if cart_summary.discount_cents > 0 %}
                     <div class="d-flex justify-content-between mb-2 text-danger">
                         <span class="">Discount</span>
-                        <span class="fw-bold">-€{{ "%.2f"|format(cart_summary.discount_cents / 100) }}</span>
+                        <span id="summary-discount" class="fw-bold">-€{{ "%.2f"|format(cart_summary.discount_cents / 100) }}</span>
                     </div>
                     {% endif %}
                     <div class="d-flex justify-content-between mb-2 border-top pt-2 mt-2">
                         <span class="text-muted">Grand Total Excl. Tax</span>
-                        <span class="fw-bold">€{{ "%.2f"|format((cart_summary.subtotal_after_discount_cents + cart_summary.shipping_cost_cents) / 100) }}</span>
+                        <span id="summary-grand-total-excl-tax" class="fw-bold">€{{ "%.2f"|format((cart_summary.subtotal_after_discount_cents + cart_summary.shipping_cost_cents) / 100) }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">VAT</span>
-                        <span id="vat-amount" class="fw-bold">€{{ "%.2f"|format(cart_summary.vat_cents / 100) }}</span>
+                        <span id="summary-vat" class="fw-bold">€{{ "%.2f"|format(cart_summary.vat_cents / 100) }}</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-4">
                         <span class="h5 mb-0 fw-bold">Total Due</span>
-                        <span id="total-due" class="h5 mb-0 fw-bold text-primary">€{{ "%.2f"|format(cart_summary.total_cents / 100) }}</span>
+                        <span id="summary-total" class="h5 mb-0 fw-bold text-primary">€{{ "%.2f"|format(cart_summary.total_cents / 100) }}</span>
                     </div>
 
                     <form id="place-order-form" method="POST">

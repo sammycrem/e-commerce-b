@@ -53,32 +53,4 @@
     </div>
 </div>
 
-<style>
-    .product-card {
-        transition: transform 0.3s ease;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-    }
-    .product-image-container:hover .product-overlay {
-        opacity: 1 !important;
-    }
-    .product-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.2);
-    }
-    .text-truncate-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    .transition {
-        transition: all 0.3s ease;
-    }
-</style>
 {% endblock %}
