@@ -517,9 +517,6 @@ def product_page(sku):
 def admin_page():
     return render_template('admin.html')
 
-@app.route('/order-success/<string:order_id>')
-def order_success_page(order_id):
-    return render_template('order_success.html', order_id=order_id)
 
 # -------------------------
 # Admin product CRUD API
@@ -1096,4 +1093,8 @@ app.register_blueprint(countries_bp)
 # -------------------------
 # Start
 # -------------------------
-setup_database(app)    
+with app.app_context():
+    setup_database(app)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

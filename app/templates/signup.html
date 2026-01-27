@@ -1,59 +1,53 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="CC Sammy Clara">
-    <meta name="generator" content="CC Sammy Clara">
-    <title>My site ai 2024</title>
-    <link href="/static/assets/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&amp;family=Nunito:wght@600;700;800&amp;family=Pacifico&amp;display=swap;" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cookie&display=swap" rel="stylesheet">
-    <link href="/static/assets/css/product.css" rel="stylesheet">
-</head>
-<body>
-    <a href="{{ url_for('login') }}">signup</a>
+{% extends "layout.html" %}
 
+{% block title %}Sign Up - E-Commerce Pro{% endblock %}
 
-<div class="align-items-center" id="updateDiv"
-    style="overflow-y: scroll; overflow-x: hidden; display: block;position: relative;z-index: 10000000;top: 25%;width: 94%;left: 3%;background: black;height: auto; border: solid #FEA116;">
-      <div class=" fadeInUp" style="width: 100%;padding: 2%;margin: auto;">
-        <br>
-        <h4 class="section-title ff-secondary  text-secondary" id="h4_1_form" style="margin-left: 2%;"><i class="fa-solid fa-user-plus"></i></h4>
-        <h4 id="h4_2_form" class="section-title ff-secondary  text-secondary"> Inscription Gratuite</h4>
-        <h4 class="text-white mb-4" id="h2_1_form" style="margin-left: 2%;">{{ message_text }}</h4>
-        <form method="POST" action="/signup">
-      
-      <div class="form-floating margin-2per">
-            <input class="form-control" type="text" name="username" placeholder="Username" required>
-            <label>Nom d'utilisateur</label>
-      </div>
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 mt-5">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-plus fs-1 text-primary"></i>
+                        <h2 class="fw-bold mt-2">Create Account</h2>
+                        <p class="text-muted">Join us today and start shopping!</p>
+                    </div>
 
-      <div class="form-floating margin-2per">
-          <input class="form-control" type="email" name="email" placeholder="Email" required>
-          <label>Email</label>
-      </div>
-      <div class="form-floating margin-2per">
-          <input class="form-control" type="password" name="password" placeholder="Password" required>
-          <label>Mot de pass</label>
-      </div>
+                    {% if message_text %}
+                    <div class="alert alert-danger shadow-sm mb-4" role="alert">
+                        {{ message_text }}
+                    </div>
+                    {% endif %}
 
-    
-    
-    <div class="col-button" style="margin-left: 36%;">
-      <button class="btn btn-primary w-25 py-3 form-control-btn" type="submit"><i class="fa-solid fa-user-plus"></i> Create</button>
+                    <form method="POST" action="/signup">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="floatingUsername" name="username" placeholder="Username" required>
+                            <label for="floatingUsername">Username</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="floatingEmail" name="email" placeholder="name@example.com" required>
+                            <label for="floatingEmail">Email address</label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+                            <label for="floatingPassword">Password</label>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-4">
+                            <button class="btn btn-primary btn-lg fw-bold py-3" type="submit">
+                                <i class="bi bi-person-plus me-2"></i>Sign Up
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <span class="text-muted">Already have an account?</span>
+                            <a href="{{ url_for('login') }}" class="fw-bold text-decoration-none ms-1">Login</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-            
-          
-    
-        </form>
-      </div>
-  </div>
- 
-    
-</body>
-</html>
+</div>
+{% endblock %}

@@ -35,11 +35,11 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="bg-white rounded shadow-sm p-4 mb-4">
-                <form id="shipping-methods-form">
-                    <div class="card mb-3 border">
+                <form id="shipping-methods-form" method="POST" action="{{ url_for('checkout_bp.shipping_methods_save') }}">
+                    <div class="card mb-3 border {{ 'border-primary bg-light' if selected_shipping == 'standard' }}">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="shipping_method" id="standard" value="standard" checked>
+                                <input class="form-check-input" type="radio" name="shipping_method" id="standard" value="standard" {{ 'checked' if selected_shipping == 'standard' }}>
                                 <label class="form-check-label h6 mb-0 ms-2" for="standard">
                                     Standard Shipping
                                 </label>
@@ -48,10 +48,10 @@
                         </div>
                     </div>
 
-                    <div class="card mb-3 border">
+                    <div class="card mb-3 border {{ 'border-primary bg-light' if selected_shipping == 'express' }}">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="shipping_method" id="express" value="express">
+                                <input class="form-check-input" type="radio" name="shipping_method" id="express" value="express" {{ 'checked' if selected_shipping == 'express' }}>
                                 <label class="form-check-label h6 mb-0 ms-2" for="express">
                                     Express Shipping
                                 </label>
@@ -60,10 +60,10 @@
                         </div>
                     </div>
 
-                    <div class="card mb-3 border">
+                    <div class="card mb-3 border {{ 'border-primary bg-light' if selected_shipping == 'economic' }}">
                         <div class="card-body">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="shipping_method" id="economic" value="economic">
+                                <input class="form-check-input" type="radio" name="shipping_method" id="economic" value="economic" {{ 'checked' if selected_shipping == 'economic' }}>
                                 <label class="form-check-label h6 mb-0 ms-2" for="economic">
                                     Economic Shipping
                                 </label>
@@ -83,20 +83,31 @@
                         <span class="text-muted">Subtotal</span>
                         <span id="subtotal" class="fw-bold">€{{ "%.2f"|format(cart_summary.subtotal_cents / 100) }}</span>
                     </div>
+                    {% if cart_summary.discount_cents > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-danger">
+                        <span class="">Discount</span>
+                        <span id="discount" class="fw-bold">-€{{ "%.2f"|format(cart_summary.discount_cents / 100) }}</span>
+                    </div>
+                    {% else %}
+                    <div id="discount-row" class="d-flex justify-content-between mb-2 text-danger" style="display: none !important;">
+                        <span class="">Discount</span>
+                        <span id="discount" class="fw-bold">-€0.00</span>
+                    </div>
+                    {% endif %}
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Shipping</span>
                         <span id="shipping" class="fw-bold">€{{ "%.2f"|format(cart_summary.shipping_cost_cents / 100) }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">VAT</span>
-                        <span id="vat" class="fw-bold">€{{ "%.2f"|format(cart_summary.vat_cents / 100) }}</span>
+                        <span id="vat-amount" class="fw-bold">€{{ "%.2f"|format(cart_summary.vat_cents / 100) }}</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-4">
                         <span class="h5 mb-0">Total Due</span>
-                        <span id="total" class="h5 mb-0 fw-bold text-primary">€{{ "%.2f"|format(cart_summary.total_cents / 100) }}</span>
+                        <span id="total-due" class="h5 mb-0 fw-bold text-primary">€{{ "%.2f"|format(cart_summary.total_cents / 100) }}</span>
                     </div>
-                    <a id="proceed-to-checkout" href="#" class="btn btn-primary btn-lg w-100 fw-bold">PROCEED TO CHECKOUT</a>
+                    <button type="submit" form="shipping-methods-form" class="btn btn-primary btn-lg w-100 fw-bold">PROCEED TO CHECKOUT</button>
                 </div>
             </div>
         </div>

@@ -732,11 +732,12 @@ def get_random_element_from_json(json_string):
         return None
 # ---------end------------
 
-def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None):
+def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None, shipping_method='standard'):
     """
     items: list of {sku: ..., quantity: N}
     shipping_country_iso: str like 'DE' or 'US'
     promo_code: optional promo code string
+    shipping_method: 'standard', 'express', or 'economic'
 
     Returns a dict:
     {
@@ -849,7 +850,14 @@ def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None)
     shipping_cost_cents = 0
     if zone:
         shipping_cost_cents = compute_shipping_cost_for_cart(cart_items, zone)
-        # apply free shipping threshold if configured
+
+        # Apply shipping method modifiers
+        if shipping_method == 'express':
+            shipping_cost_cents = int(shipping_cost_cents * 1.25)
+        elif shipping_method == 'economic':
+            shipping_cost_cents = int(shipping_cost_cents * 0.9)
+
+        # apply free shipping threshold if configured (after modifiers? Usually standard shipping is free, express might not be)
         try:
             if zone.free_shipping_threshold_cents is not None and isinstance(zone.free_shipping_threshold_cents, int):
                 if subtotal_after_discount >= int(zone.free_shipping_threshold_cents):

@@ -1,11 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
     const subtotalEl = document.getElementById('subtotal');
+    const discountEl = document.getElementById('discount');
     const shippingEl = document.getElementById('shipping');
-    const vatEl = document.getElementById('vat');
-    const totalEl = document.getElementById('total');
+    const vatEl = document.getElementById('vat-amount');
+    const totalEl = document.getElementById('total-due');
+
     const originalShippingCost = parseFloat(shippingEl.textContent.replace('€', ''));
     const subtotal = parseFloat(subtotalEl.textContent.replace('€', ''));
+    const discount = discountEl ? parseFloat(discountEl.textContent.replace('-€', '').replace('€', '')) : 0;
     const vat = parseFloat(vatEl.textContent.replace('€', ''));
 
     shippingMethods.forEach(method => {
@@ -17,10 +20,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 newShippingCost *= 0.9;
             }
 
-            const newTotal = subtotal + newShippingCost + vat;
+            const newTotal = subtotal - discount + newShippingCost + vat;
 
             shippingEl.textContent = `€${newShippingCost.toFixed(2)}`;
             totalEl.textContent = `€${newTotal.toFixed(2)}`;
+
+            // Update UI feedback for selected card
+            shippingMethods.forEach(m => {
+                const card = m.closest('.card');
+                if (card) {
+                    if (m.checked) {
+                        card.classList.add('border-primary', 'bg-light');
+                    } else {
+                        card.classList.remove('border-primary', 'bg-light');
+                    }
+                }
+            });
 
             sessionStorage.setItem('shipping_method', method.value);
             sessionStorage.setItem('shipping_cost', newShippingCost.toFixed(2));
