@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
-    const subtotalEl = document.getElementById('summary-subtotal');
-    const discountEl = document.getElementById('summary-discount');
-    const shippingEl = document.getElementById('summary-shipping');
-    const vatEl = document.getElementById('summary-vat');
-    const totalEl = document.getElementById('summary-total');
+    const subtotalEl = document.getElementById('subtotal');
+    const discountEl = document.getElementById('discount');
+    const shippingEl = document.getElementById('shipping');
+    const vatEl = document.getElementById('vat-amount');
+    const totalEl = document.getElementById('total-due');
 
     const summaryCard = document.querySelector('.summary-card');
     const baseShipping = parseFloat(summaryCard.dataset.baseShipping);
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newTotal = newGrandTotalExclTax + totalVat;
 
             shippingEl.textContent = `€${newShippingCost.toFixed(2)}`;
-            const grandTotalExclTaxEl = document.getElementById('summary-grand-total-excl-tax');
+            const grandTotalExclTaxEl = document.getElementById('grand-total-excl-tax');
             if (grandTotalExclTaxEl) {
                 grandTotalExclTaxEl.textContent = `€${newGrandTotalExclTax.toFixed(2)}`;
             }

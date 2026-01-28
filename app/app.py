@@ -154,7 +154,7 @@ def create_user(user_name, user_ID, user_email, user_pssword):
 # -------------------------
 # Seeding helpers & config
 # -------------------------
-RECREATE_IF_EXISTS = False
+RECREATE_IF_EXISTS = True
 BASE_IMAGE_URL = "http://localhost:5000/static/ec/products/img"
 PRODUCT_COUNT = 4
 COLORS = [
@@ -459,7 +459,7 @@ def login():
                 return render_template('login.html', message_text="Invalid username or password")
         else:
             if current_user.is_authenticated:
-                return redirect(url_for('convert_html')) #return redirect(url_for('home'))
+                return redirect(url_for('home'))
     except Exception as e:
         return render_template('login.html', message_text=e)
     return render_template('login.html', message_text="Please Login or Signup")
