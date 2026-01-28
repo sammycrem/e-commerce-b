@@ -1,22 +1,20 @@
 // static/js/cart.js
 // Full cart script: renders session cart, lets user update quantities/remove items,
-// selects shipping country, applies promo codes, shows VAT/shipping breakdown and performs checkout.
+// applies promo codes, shows VAT breakdown and performs checkout.
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements from the new cart.html structure
   const cartContainer = document.getElementById('cart-container');
   const cartSummary = document.getElementById('cart-summary');
-  const subtotalEl = document.getElementById('subtotal');
-  const discountEl = document.getElementById('discount-amount');
-  const totalEl = document.getElementById('total-price');
+  const subtotalEl = document.getElementById('summary-subtotal');
+  const discountEl = document.getElementById('summary-discount');
+  const totalEl = document.getElementById('summary-total');
   const applyPromoBtn = document.getElementById('apply-promo-btn');
   const promoInput = document.getElementById('promo-code');
   const promoFeedback = document.getElementById('promo-feedback');
   const checkoutBtn = document.getElementById('checkout-btn');
   const checkoutFeedback = document.getElementById('checkout-feedback');
-  const countrySelect = document.getElementById('country-select');
-  const vatEl = document.getElementById('vat-amount');
-  const shippingEl = document.getElementById('shipping-amount');
+  const vatEl = document.getElementById('summary-vat');
   const continueShoppingBtn = document.querySelector('.continue-shopping');
   const clearCartBtn = document.querySelector('.clear-cart');
 
@@ -28,24 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function formatPrice(cents) {
     if (typeof cents !== 'number') cents = Number(cents || 0);
     return `€${(cents / 100).toFixed(2)}`;
-  }
-
-  // Load countries into selector
-  async function loadCountries() {
-    try {
-      const res = await fetch('/api/countries', { credentials: 'same-origin' });
-      if (!res.ok) throw new Error('Failed to load countries');
-      const data = await res.json();
-      countrySelect.innerHTML = '<option value="">Select country</option>';
-      data.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.iso_code;
-        opt.textContent = `${c.name} (${c.iso_code})`;
-        countrySelect.appendChild(opt);
-      });
-    } catch (err) {
-      console.warn('Could not load countries:', err);
-    }
   }
 
   // Fetch session cart from backend and render
@@ -176,14 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function recalcTotals(promoCode = '') {
     const items = (cartData.items || []).map(it => ({ sku: it.sku, quantity: it.quantity }));
-    const country = countrySelect.value || null;
 
     try {
       const res = await fetch('/api/calculate-totals', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shipping_country_iso: country, promo_code: promoCode || null })
+        body: JSON.stringify({ items, shipping_country_iso: null, promo_code: promoCode || null })
       });
       const data = await res.json();
 
@@ -191,17 +170,22 @@ document.addEventListener('DOMContentLoaded', () => {
         subtotalEl.textContent = formatPrice(cartData.subtotal_cents || 0);
         discountEl.textContent = formatPrice(0);
         vatEl.textContent = formatPrice(0);
-        shippingEl.textContent = formatPrice(0);
         totalEl.textContent = formatPrice(cartData.subtotal_cents || 0);
         return;
       }
 
       lastCalc = data;
-      subtotalEl.textContent = formatPrice(data.subtotal_cents || 0);
-      discountEl.textContent = formatPrice(data.discount_cents || 0);
-      vatEl.textContent = formatPrice(data.vat_cents || 0);
-      shippingEl.textContent = `${formatPrice(data.shipping_cost_cents || 0)} ${data.shipping_zone ? '(' + data.shipping_zone + ')' : ''}`;
-      totalEl.textContent = formatPrice(data.total_cents || 0);
+      if (subtotalEl) subtotalEl.textContent = formatPrice(data.subtotal_cents || 0);
+      if (discountEl) discountEl.textContent = formatPrice(data.discount_cents || 0);
+
+      // Cart page displays only item VAT and total without shipping
+      const itemVat = data.item_vat_cents || 0;
+      if (vatEl) vatEl.textContent = formatPrice(itemVat);
+
+      const subtotalAfterDiscount = (data.subtotal_cents || 0) - (data.discount_cents || 0);
+      const totalDueWithoutShipping = subtotalAfterDiscount + itemVat;
+      if (totalEl) totalEl.textContent = formatPrice(totalDueWithoutShipping);
+
     } catch (err) {
       console.error('recalcTotals error:', err);
       promoFeedback.textContent = 'Unable to calculate totals. Try again.';
@@ -232,10 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  countrySelect.addEventListener('change', () => {
-    recalcTotals(promoInput.value.trim());
-  });
-
   continueShoppingBtn.addEventListener('click', () => {
     window.location.href = '/index';
   });
@@ -247,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   (async function init() {
-    await loadCountries();
     await refreshCart();
   })();
 });

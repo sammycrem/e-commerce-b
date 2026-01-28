@@ -154,7 +154,7 @@ def create_user(user_name, user_ID, user_email, user_pssword):
 # -------------------------
 # Seeding helpers & config
 # -------------------------
-RECREATE_IF_EXISTS = True
+RECREATE_IF_EXISTS = False
 BASE_IMAGE_URL = "http://localhost:5000/static/ec/products/img"
 PRODUCT_COUNT = 4
 COLORS = [

@@ -270,7 +270,7 @@ def payment_methods():
 def summary():
     cart_info = session.get('cart', {})
     if not cart_info:
-        return redirect(url_for('www.shop'))
+        return redirect(url_for('shop_page'))
 
     items_list = [{"sku": sku, "quantity": qty} for sku, qty in cart_info.items()]
 
