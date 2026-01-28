@@ -789,63 +789,6 @@ def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None,
             "product_snapshot": product_snapshot
         })
 
-    # Promotion/discount
-    discount_cents = 0
-    promo = None
-    if promo_code:
-        promo = Promotion.query.filter_by(code=promo_code, is_active=True).first()
-        from datetime import datetime, timezone
-        if promo and promo.valid_to and promo.valid_to < datetime.utcnow():
-            promo = None  # expired
-
-    if promo:
-        if promo.discount_type == 'PERCENT':
-            # promo.discount_value expected as percentage (e.g., 20 for 20)
-            try:
-                from math import ceil
-                pct = float(promo.discount_value)
-                discount_cents = int(ceil(subtotal * (pct / 100.0)))
-            except Exception:
-                discount_cents = 0
-        elif promo.discount_type == 'FIXED':
-            # assume discount_value stored as cents for 'FIXED' (compat with your earlier code)
-            try:
-                discount_cents = int(promo.discount_value)
-            except Exception:
-                discount_cents = 0
-        # ensure discount not greater than subtotal
-        if discount_cents > subtotal:
-            discount_cents = subtotal
-
-    subtotal_after_discount = max(0, subtotal - discount_cents)
-
-    # VAT calculation on discounted prices
-    # Create a copy of cart_items to adjust prices for VAT calc without affecting other logic
-    vat_calc_items = [item.copy() for item in cart_items]
-    if promo and discount_cents > 0:
-        if promo.discount_type == 'PERCENT':
-            pct_off = Decimal(promo.discount_value) / Decimal(100)
-            for item in vat_calc_items:
-                original_price = cents_to_decimal(item['unit_price_cents'])
-                discounted_price = original_price * (Decimal(1) - pct_off)
-                item['unit_price_cents'] = decimal_to_cents(discounted_price)
-        elif promo.discount_type == 'FIXED':
-            if subtotal > 0:
-                # Distribute fixed discount proportionally
-                for item in vat_calc_items:
-                    line_total = cents_to_decimal(item['unit_price_cents']) * item['quantity']
-                    proportion = line_total / cents_to_decimal(subtotal)
-                    line_discount = cents_to_decimal(discount_cents) * proportion
-                    # Discount per unit
-                    if item['quantity'] > 0:
-                        unit_discount = line_discount / item['quantity']
-                        new_unit_price = cents_to_decimal(item['unit_price_cents']) - unit_discount
-                        item['unit_price_cents'] = decimal_to_cents(new_unit_price)
-
-    _, item_vat_total_cents = compute_vat_for_cart(vat_calc_items, shipping_country_iso)
-    vat_total = item_vat_total_cents
-
-
     # Shipping calculation
     zone = find_shipping_zone_for_country(shipping_country_iso)
     shipping_cost_cents = 0
@@ -863,29 +806,79 @@ def calculate_totals_internal(items, shipping_country_iso=None, promo_code=None,
         # apply free shipping threshold if configured (after modifiers? Usually standard shipping is free, express might not be)
         try:
             if zone.free_shipping_threshold_cents is not None and isinstance(zone.free_shipping_threshold_cents, int):
-                if subtotal_after_discount >= int(zone.free_shipping_threshold_cents):
+                if subtotal >= int(zone.free_shipping_threshold_cents): # use subtotal for threshold
                     shipping_cost_cents = 0
         except Exception:
             pass
 
-    # Add VAT on shipping
-    shipping_vat_rate = get_vat_rate_for_product(shipping_country_iso, None)
-    shipping_vat_cents = decimal_to_cents(cents_to_decimal(shipping_cost_cents) * shipping_vat_rate)
-    vat_total += shipping_vat_cents
+    total_excl_tax = subtotal + shipping_cost_cents
 
-    total = subtotal_after_discount + vat_total + shipping_cost_cents
+    # Promotion/discount (applied to total_excl_tax)
+    discount_cents = 0
+    promo = None
+    if promo_code:
+        promo = Promotion.query.filter_by(code=promo_code, is_active=True).first()
+        from datetime import datetime, timezone
+        if promo and promo.valid_to and promo.valid_to < datetime.utcnow():
+            promo = None  # expired
+
+    if promo:
+        if promo.discount_type == 'PERCENT':
+            try:
+                from math import ceil
+                pct = float(promo.discount_value)
+                discount_cents = int(ceil(total_excl_tax * (pct / 100.0)))
+            except Exception:
+                discount_cents = 0
+        elif promo.discount_type == 'FIXED':
+            try:
+                discount_cents = int(promo.discount_value)
+            except Exception:
+                discount_cents = 0
+        # ensure discount not greater than total_excl_tax
+        if discount_cents > total_excl_tax:
+            discount_cents = total_excl_tax
+
+    discounted_total_excl_tax = max(0, total_excl_tax - discount_cents)
+
+    # VAT calculation on discounted prices
+    # Distribute discount proportionally across items and shipping
+    item_vat_total_cents = 0
+    shipping_vat_cents = 0
+
+    if total_excl_tax > 0:
+        ratio = Decimal(discounted_total_excl_tax) / Decimal(total_excl_tax)
+
+        # Calculate discounted item VAT
+        vat_calc_items = [item.copy() for item in cart_items]
+        for item in vat_calc_items:
+            discounted_unit_price = Decimal(item['unit_price_cents']) * ratio
+            item['unit_price_cents'] = decimal_to_cents(discounted_unit_price)
+
+        _, item_vat_total_cents = compute_vat_for_cart(vat_calc_items, shipping_country_iso)
+
+        # Calculate discounted shipping VAT
+        discounted_shipping_cost = Decimal(shipping_cost_cents) * ratio
+        shipping_vat_rate = get_vat_rate_for_product(shipping_country_iso, None)
+        shipping_vat_cents = decimal_to_cents(discounted_shipping_cost * shipping_vat_rate)
+
+    vat_total = item_vat_total_cents + shipping_vat_cents
+    total_due = discounted_total_excl_tax + vat_total
 
     return {
         "subtotal_cents": int(subtotal),
         "discount_cents": int(discount_cents),
-        "subtotal_after_discount_cents": int(subtotal_after_discount),
-        "vat_cents": int(vat_total),
-        "item_vat_cents": int(item_vat_total_cents),
+        "subtotal_after_discount_cents": int(Decimal(subtotal) * (Decimal(discounted_total_excl_tax)/Decimal(total_excl_tax)) if total_excl_tax > 0 else 0),
         "shipping_cost_cents": int(shipping_cost_cents),
         "base_shipping_cost_cents": int(base_shipping_cost_cents),
-        "total_cents": int(total),
+        "total_excl_tax_cents": int(total_excl_tax),
+        "discounted_total_excl_tax_cents": int(discounted_total_excl_tax),
+        "vat_cents": int(vat_total),
+        "item_vat_cents": int(item_vat_total_cents),
+        "shipping_vat_cents": int(shipping_vat_cents),
+        "total_cents": int(total_due),
         "shipping_zone": (zone.name if zone else None),
-        "vat_rate": float(shipping_vat_rate)
+        "vat_rate": float(get_vat_rate_for_product(shipping_country_iso, None))
     }
 
 
