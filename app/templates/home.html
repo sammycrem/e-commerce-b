@@ -1,85 +1,75 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>Login</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="">
-  <meta name="author" content="CC Sammy Clara">
-  <meta name="generator" content="CC Sammy Clara">
-  <title>Home</title>
-  <link href="/static/assets/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&amp;family=Nunito:wght@600;700;800&amp;family=Pacifico&amp;display=swap;" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Cookie&display=swap" rel="stylesheet">
-  <link href="/static/assets/css/product.css" rel="stylesheet">
-</head>
+{% block title %}My Profile - E-Commerce Pro{% endblock %}
 
-<body>
-  <a href="{{ url_for('logout') }}">Logout</a>
-
-
-  <div class="align-items-center" id="updateDiv"
-    style="overflow-y: scroll; overflow-x: hidden; display: block;position: relative;z-index: 10000000;top: 25%;width: 94%;left: 3%;background: black;height: auto; border: solid #FEA116;">
-    <div class=" fadeInUp" style="width: 100%;padding: 2%;margin: auto;">
-      <br>
-      <h4 class="section-title ff-secondary  text-secondary" id="h4_1_form" style="margin-left: 2%;"><i
-          class="fa-solid fa-right-to-bracket"></i></h4>
-      <h4 id="h4_2_form" class="section-title ff-secondary  text-secondary"> Welcome, {{ current_user.username }}! - home page</h4>
-      <h4 class="text-white mb-4" id="h2_1_form" style="margin-left: 2%;">{{ message_text }}</h4>
-      <form method="POST" action="/user_update">
-
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="text" name="name" required value="{{ current_user.username }}" readonly>
-          <label>User Name </label>
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-person-circle text-primary" style="font-size: 5rem;"></i>
+                    <h3 class="fw-bold mt-3">{{ current_user.username }}</h3>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Account Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">User ID</div>
+                        <div class="col-sm-8 fw-bold">{{ current_user.user_id }}</div>
+                    </div>
+                    <hr class="text-light">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Username</div>
+                        <div class="col-sm-8 fw-bold">{{ current_user.username }}</div>
+                    </div>
+                    <hr class="text-light">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Email</div>
+                        <div class="col-sm-8 fw-bold">{{ current_user.email }}</div>
+                    </div>
+                    <hr class="text-light">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Last Login</div>
+                        <div class="col-sm-8 fw-bold">{{ session.get('time', 'N/A') }}</div>
+                    </div>
+                    <hr class="text-light">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Account Created</div>
+                        <div class="col-sm-8 fw-bold">{{ current_user.created_at.strftime('%Y-%m-%d %H:%M') if current_user.created_at else 'N/A' }}</div>
+                    </div>
+                    <hr class="text-light">
+                    <div class="row mb-0">
+                        <div class="col-sm-4 text-muted">Validation Status</div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-{{ 'success' if current_user.validation else 'warning' }}">
+                                {{ 'Validated' if current_user.validation else 'Pending' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="text" name="id" required value="{{ current_user.user_id }}" readonly>
-          <label>User Id: </label>
+            <div class="mt-4 d-flex gap-3">
+                <a href="/shop" class="btn btn-primary btn-lg px-4 fw-bold shadow-sm">
+                    <i class="bi bi-bag-check me-2"></i>Start Shopping
+                </a>
+                <a href="/admin/orders" class="btn btn-outline-secondary btn-lg px-4 fw-bold">
+                    <i class="bi bi-receipt me-2"></i>My Orders
+                </a>
+            </div>
         </div>
-
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="text" name="time" value="{{ session.get('time') }}" required readonly>
-          <label>Last login: </label>
-        </div>
-
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="text" name="password" value="{{ current_user.password }}" required readonly>
-          <label>Password: </label>
-        </div>
-
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="email" name="email" value="{{ current_user.email }}" required readonly>
-          <label>Email: </label>
-        </div>
-
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="text" name="validation" value="{{ current_user.validation }}" required readonly>
-          <label>Validation</label>
-        </div>
-
-        <div class="form-floating margin-2per">
-          <input class="form-control" type="text" name="created_at" value="{{ current_user.created_at }}" required readonly>
-          <label>Created_at</label>
-        </div>
-
-
-      <div style="width: 90%; margin-left: 15%;">
-        
-        <div class="col-button" >
-          <a href="{{ url_for('logout') }}">
-            <div class="btn btn-primary w-25 py-3 form-control-btn"><i class="fa-solid fa-list"></i> Logout</div></a>
-        </div></div>
-
-      </div>
-
-      </form>
     </div>
-  </div>
-
-
-</body>
-
-</html>
+</div>
+{% endblock %}

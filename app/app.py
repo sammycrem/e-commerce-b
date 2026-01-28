@@ -152,6 +152,134 @@ def create_user(user_name, user_ID, user_email, user_pssword):
 
 
 # -------------------------
+# Seeding helpers & config
+# -------------------------
+RECREATE_IF_EXISTS = False
+BASE_IMAGE_URL = "http://localhost:5000/static/ec/products/img"
+PRODUCT_COUNT = 4
+COLORS = [
+    {"name": "White", "code": "white", "prefix": "a", "price_modifier_pct": 0.0},
+    {"name": "Red",   "code": "red",   "prefix": "b", "price_modifier_pct": 0.20},
+    {"name": "Black", "code": "black", "prefix": "c", "price_modifier_pct": 0.10},
+]
+SIZES = ["S", "M", "L", "XL"]
+DEFAULT_STOCK = 10
+BASE_PRICES_USD = {
+    "p-1": 12.00,
+    "p-2": 18.50,
+    "p-3": 22.00,
+    "p-4": 15.75
+}
+
+def usd_to_cents(usd):
+    d = Decimal(str(usd)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return int(d * 100)
+
+def create_product_data(product_key):
+    sku = product_key
+    name = f"T-Shirt {product_key.upper()}"
+    category = "Graphic Tees"
+    description = f"Comfortable cotton tee — design {product_key.upper()}."
+    base_price_usd = BASE_PRICES_USD.get(product_key, 19.99)
+    base_price_cents = usd_to_cents(base_price_usd)
+    product_image_url = f"{BASE_IMAGE_URL}/{product_key}/a-1.webp"
+
+    variants = []
+    for color in COLORS:
+        color_prefix = color["prefix"]
+        color_name = color["name"]
+        modifier_pct = color["price_modifier_pct"]
+        variant_images = [
+            {"url": f"{BASE_IMAGE_URL}/{product_key}/{color_prefix}-1.webp", "alt_text": f"{color_name} image 1"},
+            {"url": f"{BASE_IMAGE_URL}/{product_key}/{color_prefix}-2.webp", "alt_text": f"{color_name} image 2"},
+            {"url": f"{BASE_IMAGE_URL}/{product_key}/{color_prefix}-3.webp", "alt_text": f"{color_name} image 3"},
+        ]
+
+        for size in SIZES:
+            variant_sku = f"{product_key.upper()}-{color['code'][0].upper()}-{size}"
+            price_modifier_cents = int(round(base_price_cents * modifier_pct))
+            variants.append({
+                "sku": variant_sku,
+                "color_name": color_name,
+                "size": size,
+                "stock_quantity": DEFAULT_STOCK,
+                "price_modifier_cents": price_modifier_cents,
+                "images": variant_images
+            })
+
+    product_images = [
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/a-1.webp", "alt_text": f"{product_key} white 1", "display_order": 0},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/a-2.webp", "alt_text": f"{product_key} white 2", "display_order": 1},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/a-3.webp", "alt_text": f"{product_key} white 3", "display_order": 2},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/b-1.webp", "alt_text": f"{product_key} red 1", "display_order": 3},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/b-2.webp", "alt_text": f"{product_key} red 2", "display_order": 4},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/b-3.webp", "alt_text": f"{product_key} red 3", "display_order": 5},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/c-1.webp", "alt_text": f"{product_key} black 1", "display_order": 6},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/c-2.webp", "alt_text": f"{product_key} black 2", "display_order": 7},
+        {"url": f"{BASE_IMAGE_URL}/{product_key}/c-3.webp", "alt_text": f"{product_key} black 3", "display_order": 8},
+    ]
+
+    return {
+        "product_sku": sku,
+        "name": name,
+        "category": category,
+        "description": description,
+        "base_price_cents": base_price_cents,
+        "image_url": product_image_url,
+        "images": product_images,
+        "variants": variants
+    }
+
+def safe_delete_product_by_sku(session, sku):
+    p = Product.query.filter_by(product_sku=sku).first()
+    if p:
+        session.delete(p)
+        session.flush()
+
+def insert_product(session, pdata):
+    sku = pdata["product_sku"]
+    product = Product(
+        product_sku=sku,
+        name=pdata["name"],
+        description=pdata.get("description"),
+        category=pdata.get("category"),
+        base_price_cents=int(pdata["base_price_cents"])
+    )
+    session.add(product)
+    session.flush()
+
+    for idx, img in enumerate(pdata.get("images", [])):
+        pi = ProductImage(
+            product_id=product.id,
+            url=img["url"],
+            alt_text=img.get("alt_text", ""),
+            display_order=int(img.get("display_order", idx))
+        )
+        session.add(pi)
+
+    for v in pdata.get("variants", []):
+        variant = Variant(
+            product_id=product.id,
+            sku=v["sku"],
+            color_name=v.get("color_name"),
+            size=v.get("size"),
+            stock_quantity=int(v.get("stock_quantity") or 0),
+            price_modifier_cents=int(v.get("price_modifier_cents") or 0)
+        )
+        session.add(variant)
+        session.flush()
+        for idx, vi in enumerate(v.get("images", []) or []):
+            vimg = VariantImage(
+                variant_id=variant.id,
+                url=vi.get("url"),
+                alt_text=vi.get("alt_text", ""),
+                display_order=idx
+            )
+            session.add(vimg)
+
+    return product
+
+# -------------------------
 # Serialization helpers
 # -------------------------
 def serialize_image(image):
@@ -201,10 +329,11 @@ def setup_database(app):
         # --- Seeding Logic ---
         # Create default user if it doesn't exist
         if not User.query.filter_by(username=ADMIN_USER).first():
-            create_user(ADMIN_USER, generate_id(3) + '_1', ADMIN_EMAIL, ADMIN_PASSWORD)
+            create_user(ADMIN_USER, generate_id(6) + '_1', ADMIN_EMAIL, ADMIN_PASSWORD)
             users = ["jimmy", "rami", "christophe","olivier","majed","clara","aline","oscar","jean"]
             for xuser_name in users:
-                create_user(xuser_name, generate_id(3) + '_1', xuser_name+"@nomail.local", '123')
+                if not User.query.filter_by(username=xuser_name).first():
+                    create_user(xuser_name, generate_id(6) + '_1', xuser_name+"@nomail.local", '123')
 
         if not Promotion.query.first():
             promo = Promotion(
@@ -255,6 +384,26 @@ def setup_database(app):
             db.session.add(variant)
             db.session.commit()
 
+        # --- Seeding playground data ---
+        logger.info("Seeding playground data...")
+        created = []
+        try:
+            for i in range(1, PRODUCT_COUNT + 1):
+                key = f"p-{i}"
+                pdata = create_product_data(key)
+                if RECREATE_IF_EXISTS:
+                    safe_delete_product_by_sku(db.session, pdata["product_sku"])
+
+                prod = insert_product(db.session, pdata)
+                created.append(prod.product_sku)
+
+            db.session.commit()
+            logger.info(f"Seeding complete. Created products: {', '.join(created)}")
+        except Exception as exc:
+            db.session.rollback()
+            logger.error(f"Error during seeding: {exc}")
+            # we don't want to crash the whole app startup if seeding fails
+
 
 
 
@@ -263,10 +412,12 @@ def setup_database(app):
 
 @app.route('/')
 def home():
-    if current_user.is_authenticated:
-        return  render_template ('home.html')
-    else:
-        return redirect(url_for('login'))
+    return render_template('index.html')
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('home.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -308,7 +459,7 @@ def login():
                 return render_template('login.html', message_text="Invalid username or password")
         else:
             if current_user.is_authenticated:
-                return redirect(url_for('convert_html')) #return redirect(url_for('home'))
+                return redirect(url_for('home'))
     except Exception as e:
         return render_template('login.html', message_text=e)
     return render_template('login.html', message_text="Please Login or Signup")
@@ -514,9 +665,6 @@ def product_page(sku):
 def admin_page():
     return render_template('admin.html')
 
-@app.route('/order-success/<string:order_id>')
-def order_success_page(order_id):
-    return render_template('order_success.html', order_id=order_id)
 
 # -------------------------
 # Admin product CRUD API
@@ -1093,4 +1241,8 @@ app.register_blueprint(countries_bp)
 # -------------------------
 # Start
 # -------------------------
-setup_database(app)    
+with app.app_context():
+    setup_database(app)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

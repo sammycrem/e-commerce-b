@@ -225,5 +225,140 @@ def shipping_methods():
     shipping_address = Address.query.filter_by(user_id=current_user.id, address_type='shipping').first()
     country_iso = shipping_address.country_iso_code if shipping_address else None
 
-    cart_summary = calculate_totals_internal(items, shipping_country_iso=country_iso)
-    return render_template('shipping_methods.html', cart_summary=cart_summary)
+    selected_shipping = session.get('shipping_method', 'standard')
+    cart_summary = calculate_totals_internal(items, shipping_country_iso=country_iso, shipping_method=selected_shipping)
+    return render_template('shipping_methods.html', cart_summary=cart_summary, selected_shipping=selected_shipping)
+
+@checkout_bp.route('/checkout/shipping-methods-save', methods=['POST'])
+@login_required
+def shipping_methods_save():
+    shipping_method = request.form.get('shipping_method')
+    if shipping_method:
+        session['shipping_method'] = shipping_method
+        return redirect(url_for('checkout_bp.payment_methods'))
+    flash('Please select a shipping method.', 'danger')
+    return redirect(url_for('checkout_bp.shipping_methods'))
+
+@checkout_bp.route('/checkout/payment-methods', methods=['GET', 'POST'])
+@login_required
+def payment_methods():
+    if request.method == 'POST':
+        payment_method = request.form.get('payment_method')
+        if payment_method:
+            session['payment_method'] = payment_method
+            return redirect(url_for('checkout_bp.summary'))
+        flash('Please select a payment method.', 'danger')
+
+    cart_info = session.get('cart', {})
+    items = [{"sku": sku, "quantity": qty} for sku, qty in cart_info.items()]
+
+    # Get the user's shipping address for calculation
+    shipping_address = Address.query.filter_by(user_id=current_user.id, address_type='shipping').first()
+    country_iso = shipping_address.country_iso_code if shipping_address else None
+
+    # We also need the shipping cost from the previous step
+    # For now, we'll just recalculate based on standard or get from session if stored
+    # Ideally, we should have the selected shipping method in session
+    selected_shipping = session.get('shipping_method', 'standard')
+
+    cart_summary = calculate_totals_internal(items, shipping_country_iso=country_iso, shipping_method=selected_shipping)
+
+    return render_template('payment_methods.html', cart_summary=cart_summary)
+
+@checkout_bp.route('/checkout/summary', methods=['GET', 'POST'])
+@login_required
+def summary():
+    cart_info = session.get('cart', {})
+    if not cart_info:
+        return redirect(url_for('shop_page'))
+
+    items_list = [{"sku": sku, "quantity": qty} for sku, qty in cart_info.items()]
+
+    shipping_address = Address.query.filter_by(user_id=current_user.id, address_type='shipping').first()
+    country_iso = shipping_address.country_iso_code if shipping_address else None
+
+    selected_shipping = session.get('shipping_method', 'standard')
+    selected_payment = session.get('payment_method', 'card')
+
+    cart_summary = calculate_totals_internal(items_list, shipping_country_iso=country_iso, shipping_method=selected_shipping)
+
+    if request.method == 'POST':
+        comment = request.form.get('comment')
+
+        # Resolve variants for order items
+        skus = [it.get('sku') for it in items_list]
+        variants = Variant.query.filter(Variant.sku.in_(skus)).all()
+        variant_map = {v.sku: v for v in variants}
+
+        try:
+            with db.session.begin_nested():
+                new_order = Order(
+                    user_id=current_user.id,
+                    status='PENDING',
+                    subtotal_cents=cart_summary['subtotal_cents'],
+                    discount_cents=cart_summary['discount_cents'],
+                    vat_cents=cart_summary['vat_cents'],
+                    shipping_cost_cents=cart_summary['shipping_cost_cents'],
+                    total_cents=cart_summary['total_cents'],
+                    shipping_method=selected_shipping,
+                    payment_method=selected_payment,
+                    comment=comment
+                )
+                db.session.add(new_order)
+                db.session.flush()
+
+                for it in items_list:
+                    v = variant_map.get(it['sku'])
+                    if not v: continue
+
+                    product_snapshot = {
+                        "name": v.product.name,
+                        "product_sku": v.product.product_sku,
+                        "category": v.product.category,
+                        "weight_grams": v.product.weight_grams,
+                        "dimensions_json": v.product.dimensions_json
+                    }
+                    unit_price = int((v.product.base_price_cents or 0) + (v.price_modifier_cents or 0))
+                    order_item = OrderItem(
+                        order_id=new_order.id,
+                        variant_sku=it['sku'],
+                        quantity=it['quantity'],
+                        unit_price_cents=unit_price,
+                        product_snapshot=product_snapshot
+                    )
+                    db.session.add(order_item)
+
+                    # Update stock
+                    if v.stock_quantity < it['quantity']:
+                        raise ValueError(f"Insufficient stock for {v.sku}")
+                    v.stock_quantity -= it['quantity']
+
+            db.session.commit()
+            session.pop('cart', None)
+            session.pop('shipping_method', None)
+            session.pop('payment_method', None)
+            flash('Order placed successfully!', 'success')
+            return redirect(url_for('checkout_bp.order_success', order_id=new_order.public_order_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+
+    # Get actual objects for display
+    display_items = []
+    for sku, qty in cart_info.items():
+        v = Variant.query.filter_by(sku=sku).first()
+        if v:
+            display_items.append({'variant': v, 'quantity': qty})
+
+    return render_template('summary.html',
+                           cart_summary=cart_summary,
+                           shipping_address=shipping_address,
+                           display_items=display_items,
+                           selected_shipping=selected_shipping,
+                           selected_payment=selected_payment)
+
+@checkout_bp.route('/checkout/success/<order_id>')
+@login_required
+def order_success(order_id):
+    order = Order.query.filter_by(public_order_id=order_id, user_id=current_user.id).first_or_404()
+    return render_template('order_success.html', order=order, order_id=order_id)
